@@ -24,7 +24,8 @@ const getApiUrl = () => {
   return 'https://portfolio-rishu.onrender.com'; // Fallback - update this with your production backend URL
 };
 
-const API_URL = getApiUrl();
+const API_URL = "https://portfolio-rishu.onrender.com/api";
+
 
 console.log('🔗 API URL:', API_URL); // Debug log
 
