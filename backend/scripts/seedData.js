@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import Project from '../models/Project.js';
+import Experience from '../models/Experience.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,7 +47,7 @@ const sampleProjects = [
     title: 'Netflix Clone',
     description: 'A Netflix clone built with modern web technologies featuring user authentication, movie browsing, search functionality, and responsive design. Implements movie database API integration for real-time content.',
     techStack: ['React', 'JavaScript', 'CSS3', 'Firebase', 'TMDB API'],
-    githubUrl: 'https://github.com/rishusinha26/netlix.git ',
+    githubUrl: 'https://github.com/rishusinha26/netlix.git',
     liveUrl: '',
     imageUrl: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800',
     featured: false,
@@ -55,7 +57,7 @@ const sampleProjects = [
     title: 'Tic-Tac-Toe Game',
     description: 'Interactive Tic-Tac-Toe game with clean UI, game state management, winner detection, and score tracking. Features smooth animations and responsive design for an engaging user experience.',
     techStack: ['HTML5', 'CSS3', 'JavaScript', 'DOM Manipulation'],
-    githubUrl: 'https://github.com/rishusinha26/tic-tac-toe.git ',
+    githubUrl: 'https://github.com/rishusinha26/tic-tac-toe.git',
     liveUrl: '',
     imageUrl: 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=800',
     featured: false,
@@ -65,7 +67,7 @@ const sampleProjects = [
     title: 'AI Image Generator',
     description: 'AI-powered image generator application that creates unique images from text prompts. Integrates with AI APIs to generate creative visuals based on user descriptions with an intuitive interface.',
     techStack: ['React', 'JavaScript', 'CSS3', 'OpenAI API', 'REST API'],
-    githubUrl: 'https://github.com/rishusinha26/image-generator.git ',
+    githubUrl: 'https://github.com/rishusinha26/image-generator.git',
     liveUrl: '',
     imageUrl: 'https://images.unsplash.com/photo-1547954575-855750c57bd3?w=800',
     featured: false,
@@ -121,7 +123,7 @@ const sampleExperiences = [
     current: false,
     description: 'Secured Top 15 position among 70 teams in the Smart India Hackathon college round. Contributed to coding, problem-solving, and project development, demonstrating programming, analytical, and teamwork skills.',
     skills: ['JavaScript', 'React', 'Node.js', 'MongoDB', 'Git', 'Problem Solving'],
-    certificateUrl: 'https://i.ibb.co/FbL9v3mJ/SIH.jpg', // Replace with your direct image URL (must be .jpg or .png)
+    certificateUrl: 'https://i.ibb.co/FbL9v3mJ/SIH.jpg',
     order: 4
   },
   {
@@ -134,7 +136,7 @@ const sampleExperiences = [
     current: false,
     description: 'Participated in CSE HACK LITRATE hackathon. Demonstrated technical skills, problem-solving abilities, and teamwork.',
     skills: ['Problem Solving', 'Teamwork', 'Technical Skills'],
-    certificateUrl: 'https://i.ibb.co/27Jm4Gf8/cse-hack-literate.jpg', // Replace with your direct image URL (must be .jpg or .png)
+    certificateUrl: 'https://i.ibb.co/27Jm4Gf8/cse-hack-literate.jpg',
     order: 5
   }
 ];
@@ -142,43 +144,118 @@ const sampleExperiences = [
 // Connect to MongoDB and seed data
 const seedDatabase = async () => {
   try {
-    console.log('🔌 Connecting to MongoDB...');
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    // Get MONGO_URI from environment
+    let mongoUri = process.env.MONGO_URI;
+    
+    if (!mongoUri) {
+      console.error('❌ Error: MONGO_URI is not defined in environment variables');
+      console.error('\n💡 Please ensure you have a .env file in the backend directory');
+      console.error('   Location: backend/.env');
+      console.error('\n   Content should be:');
+      console.error('   MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/database');
+      console.error('\n   Note: Special characters in password must be URL-encoded');
+      console.error('   @ = %40, < = %3C, > = %3E');
+      process.exit(1);
+    }
 
-    // Get collections
-    const db = mongoose.connection.db;
-    const projectsCollection = db.collection('projects');
-    const experiencesCollection = db.collection('experiences');
+    // Clean the URI - remove any "MONGO_URI=" prefix if accidentally included
+    mongoUri = mongoUri.trim();
+    if (mongoUri.includes('MONGO_URI=')) {
+      console.warn('⚠️  Warning: Removing "MONGO_URI=" prefix from connection string');
+      mongoUri = mongoUri.replace(/^MONGO_URI=/, '').trim();
+    }
+
+    // Remove quotes if present
+    if ((mongoUri.startsWith('"') && mongoUri.endsWith('"')) || 
+        (mongoUri.startsWith("'") && mongoUri.endsWith("'"))) {
+      mongoUri = mongoUri.slice(1, -1).trim();
+    }
+
+    // Validate URI format
+    if (!mongoUri.startsWith('mongodb://') && !mongoUri.startsWith('mongodb+srv://')) {
+      console.error('❌ Error: Invalid MongoDB connection string format');
+      console.error('   Connection string must start with "mongodb://" or "mongodb+srv://"');
+      console.error(`\n   Current value: ${mongoUri.substring(0, 100)}`);
+      console.error(`   First 20 chars: "${mongoUri.substring(0, 20)}"`);
+      console.error('\n💡 Your backend/.env file should contain exactly:');
+      console.error('   MONGO_URI=mongodb+srv://rishu:Rishu%4054321@cluster-portfolio.kuv9nyx.mongodb.net/portfolio');
+      console.error('\n   Important:');
+      console.error('   - No quotes around the value');
+      console.error('   - No spaces around the = sign');
+      console.error('   - Password must be URL-encoded (@ becomes %40)');
+      process.exit(1);
+    }
+
+    console.log('🔌 Connecting to MongoDB Atlas...');
+    const maskedUri = mongoUri.replace(/:[^:@]+@/, ':****@');
+    console.log(`   URI: ${maskedUri.substring(0, 70)}...`);
+    
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    });
+    
+    console.log('✅ Connected to MongoDB Atlas');
+    console.log(`📊 Database: ${mongoose.connection.name}`);
+    console.log(`🌐 Host: ${mongoose.connection.host}`);
 
     // Clear existing data
-    console.log('🗑️  Clearing existing data...');
-    await projectsCollection.deleteMany({});
-    await experiencesCollection.deleteMany({});
+    console.log('\n🗑️  Clearing existing data...');
+    const deletedProjects = await Project.deleteMany({});
+    const deletedExperiences = await Experience.deleteMany({});
+    console.log(`   Deleted ${deletedProjects.deletedCount} projects`);
+    console.log(`   Deleted ${deletedExperiences.deletedCount} experiences`);
 
-    // Insert sample data
-    console.log('📝 Inserting sample projects...');
-    await projectsCollection.insertMany(sampleProjects);
-    console.log(`✅ Inserted ${sampleProjects.length} projects`);
+    // Insert sample data using Mongoose models
+    console.log('\n📝 Inserting sample projects...');
+    const createdProjects = await Project.insertMany(sampleProjects);
+    console.log(`✅ Inserted ${createdProjects.length} projects`);
 
-    console.log('📝 Inserting sample experiences...');
-    await experiencesCollection.insertMany(sampleExperiences);
-    console.log(`✅ Inserted ${sampleExperiences.length} experiences`);
+    console.log('\n📝 Inserting sample experiences...');
+    const createdExperiences = await Experience.insertMany(sampleExperiences);
+    console.log(`✅ Inserted ${createdExperiences.length} experiences`);
 
     console.log('\n🎉 Database seeded successfully!');
     console.log('\n📊 Summary:');
-    console.log(`   Projects: ${sampleProjects.length}`);
-    console.log(`   Experiences: ${sampleExperiences.length}`);
+    console.log(`   Projects: ${createdProjects.length}`);
+    console.log(`   Experiences: ${createdExperiences.length}`);
     console.log('\n✨ You can now view your data at:');
     console.log('   Frontend: http://localhost:5173/projects');
     console.log('   Frontend: http://localhost:5173/experience');
 
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error('\n❌ Error seeding database:', error.message);
+    console.error('\n💡 Troubleshooting:');
+    
+    if (error.name === 'MongoParseError') {
+      console.error('   MongoDB Parse Error - Invalid connection string format');
+      console.error('   Check your backend/.env file');
+      console.error('   Ensure MONGO_URI is on a single line without quotes');
+    } else if (error.name === 'MongoServerError') {
+      console.error('   MongoDB Server Error - Check connection string and network access');
+    } else if (error.name === 'MongooseError') {
+      console.error('   Mongoose Error - Check connection string format');
+    } else if (error.message.includes('timeout')) {
+      console.error('   Connection Timeout - Check internet and MongoDB Atlas status');
+    } else {
+      console.error('   Error type:', error.name);
+      console.error('   Full error:', error);
+    }
+    
+    console.error('\n📝 Fix your backend/.env file:');
+    console.error('   1. Open: backend/.env');
+    console.error('   2. Ensure it contains (replace with your actual values):');
+    console.error('      MONGO_URI=mongodb+srv://rishu:Rishu%4054321@cluster-portfolio.kuv9nyx.mongodb.net/portfolio');
+    console.error('   3. No quotes, no spaces around =');
+    console.error('   4. Password URL-encoded (@ = %40)');
+    console.error('   5. Save and try again');
+    
     process.exit(1);
   } finally {
-    await mongoose.connection.close();
-    console.log('\n👋 Database connection closed');
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+      console.log('\n👋 Database connection closed');
+    }
     process.exit(0);
   }
 };

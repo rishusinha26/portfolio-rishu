@@ -16,11 +16,29 @@ const Experience = () => {
 
   const fetchExperiences = async () => {
     try {
+      console.log('📡 Fetching experiences from:', api.defaults.baseURL + '/experiences');
       const response = await api.get('/experiences');
-      setExperiences(response.data.data);
+      console.log('✅ Experiences response:', response.data);
+      
+      // Handle both response structures
+      const experiencesData = response.data?.data || response.data || [];
+      const experiencesArray = Array.isArray(experiencesData) ? experiencesData : [];
+      
+      console.log(`📦 Loaded ${experiencesArray.length} experiences`);
+      setExperiences(experiencesArray);
     } catch (error) {
-      console.error('Error fetching experiences:', error);
-      toast.error('Failed to load experiences');
+      console.error('❌ Error fetching experiences:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      const errorMessage = error.message || error.response?.data?.message || 'Failed to load experiences';
+      toast.error(errorMessage);
+      
+      // Set empty array on error to prevent UI breaking
+      setExperiences([]);
     } finally {
       setLoading(false);
     }

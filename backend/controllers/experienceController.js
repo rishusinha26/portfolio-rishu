@@ -3,12 +3,19 @@ import Experience from '../models/Experience.js';
 // Get all experiences
 export const getAllExperiences = async (req, res) => {
   try {
+    console.log('📡 GET /api/experiences - Fetching all experiences');
     const { type } = req.query;
     const filter = type ? { type } : {};
     const experiences = await Experience.find(filter).sort({ startDate: -1, order: 1 });
+    console.log(`✅ Found ${experiences.length} experiences`);
     res.json({ success: true, data: experiences });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('❌ Error fetching experiences:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Failed to fetch experiences',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 

@@ -15,11 +15,29 @@ const Projects = () => {
 
   const fetchProjects = async () => {
     try {
+      console.log('📡 Fetching projects from:', api.defaults.baseURL + '/projects');
       const response = await api.get('/projects');
-      setProjects(response.data.data);
+      console.log('✅ Projects response:', response.data);
+      
+      // Handle both response structures
+      const projectsData = response.data?.data || response.data || [];
+      const projectsArray = Array.isArray(projectsData) ? projectsData : [];
+      
+      console.log(`📦 Loaded ${projectsArray.length} projects`);
+      setProjects(projectsArray);
     } catch (error) {
-      console.error('Error fetching projects:', error);
-      toast.error('Failed to load projects');
+      console.error('❌ Error fetching projects:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      const errorMessage = error.message || error.response?.data?.message || 'Failed to load projects';
+      toast.error(errorMessage);
+      
+      // Set empty array on error to prevent UI breaking
+      setProjects([]);
     } finally {
       setLoading(false);
     }

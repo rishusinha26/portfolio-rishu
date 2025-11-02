@@ -3,10 +3,17 @@ import Project from '../models/Project.js';
 // Get all projects
 export const getAllProjects = async (req, res) => {
   try {
+    console.log('📡 GET /api/projects - Fetching all projects');
     const projects = await Project.find().sort({ order: 1, createdAt: -1 });
+    console.log(`✅ Found ${projects.length} projects`);
     res.json({ success: true, data: projects });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('❌ Error fetching projects:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Failed to fetch projects',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
