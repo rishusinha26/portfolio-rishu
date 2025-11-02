@@ -38,7 +38,36 @@ export const AuthProvider = ({ children }) => {
       toast.success('Logged in successfully!');
       return result;
     } catch (error) {
-      toast.error(error.message);
+      // Get user-friendly error message
+      let errorMessage = 'Login failed. Please try again.';
+      
+      switch (error.code) {
+        case 'auth/user-not-found':
+          errorMessage = 'No account found with this email. Please create an account first or use Google Sign-In.';
+          break;
+        case 'auth/wrong-password':
+          errorMessage = 'Incorrect password. Please check your password and try again.';
+          break;
+        case 'auth/invalid-email':
+          errorMessage = 'Invalid email address. Please enter a valid email.';
+          break;
+        case 'auth/user-disabled':
+          errorMessage = 'This account has been disabled. Please contact support.';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Too many failed attempts. Please try again later.';
+          break;
+        case 'auth/invalid-credential':
+          errorMessage = 'Invalid email or password. Please check your credentials.';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Network error. Please check your internet connection.';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -50,7 +79,17 @@ export const AuthProvider = ({ children }) => {
       toast.success('Logged in with Google!');
       return result;
     } catch (error) {
-      toast.error(error.message);
+      let errorMessage = 'Google login failed. Please try again.';
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-in popup was closed. Please try again.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Popup was blocked. Please allow popups and try again.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      toast.error(errorMessage);
       throw error;
     }
   };

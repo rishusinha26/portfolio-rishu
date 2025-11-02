@@ -3,6 +3,13 @@ import { Github, Linkedin, Mail, Heart, ArrowUp, Code } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
+// LeetCode Icon Component
+const LeetCodeIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16.102 17.93l-2.697 2.607c-.466.467-1.111.662-1.823.662s-1.357-.195-1.824-.662L2.571 12.98c-.467-.467-.702-1.15-.702-1.863s.235-1.357.702-1.824l4.152-4.152c.467-.467 1.111-.702 1.824-.702.713 0 1.357.235 1.824.702l2.697 2.607c.514.515 1.365.497 1.9-.038.535-.536.553-1.387.039-1.902L12.98 2.57c-.9-.9-2.078-1.354-3.406-1.354s-2.506.454-3.406 1.354L2.157 6.521c-.9.9-1.354 2.078-1.354 3.406s.454 2.506 1.354 3.406l5.011 5.011c.9.9 2.078 1.354 3.406 1.354s2.506-.454 3.406-1.354l2.105-2.105c.514-.514.497-1.365-.038-1.9-.536-.535-1.387-.553-1.902-.039zM20.811 13.01H7.333c-.718 0-1.3.582-1.3 1.3s.582 1.3 1.3 1.3h13.478c.718 0 1.3-.582 1.3-1.3s-.582-1.3-1.3-1.3z"/>
+  </svg>
+);
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -34,6 +41,12 @@ const Footer = () => {
       icon: Mail, 
       href: 'mailto:1si23is081@sit.ac.in', 
       label: 'Email',
+    },
+    { 
+      icon: LeetCodeIcon, 
+      href: 'https://leetcode.com/u/Rishu__26/', 
+      label: 'LeetCode',
+      isLeetCode: true,
     },
   ];
 
@@ -102,10 +115,14 @@ const Footer = () => {
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.1, y: -3 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-3 rounded-lg bg-gray-900/50 hover:bg-blue-500/20 text-gray-400 hover:text-blue-300 transition-all border border-gray-800 hover:border-blue-500/50"
+                  className={`p-3 rounded-lg bg-gray-900/50 ${social.isLeetCode ? 'hover:bg-orange-500/20 text-gray-400 hover:text-orange-300 hover:border-orange-500/50' : 'hover:bg-blue-500/20 text-gray-400 hover:text-blue-300 hover:border-blue-500/50'} transition-all border border-gray-800`}
                   aria-label={social.label}
                 >
-                  <social.icon className="w-5 h-5" />
+                  {social.isLeetCode ? (
+                    <LeetCodeIcon className="w-5 h-5" />
+                  ) : (
+                    <social.icon className="w-5 h-5" />
+                  )}
                 </motion.a>
               ))}
             </div>

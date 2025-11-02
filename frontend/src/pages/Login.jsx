@@ -1,26 +1,59 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader } from 'lucide-react';
+import { Mail, Lock, Loader, Code, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import SEO from '../components/SEO';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  // Helper function to get user-friendly error messages
+  const getErrorMessage = (errorCode) => {
+    switch (errorCode) {
+      case 'auth/user-not-found':
+        return 'No account found with this email. Please check your email or sign up.';
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'auth/invalid-email':
+        return 'Invalid email address. Please enter a valid email.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled. Please contact support.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your internet connection.';
+      case 'auth/invalid-credential':
+        return 'Invalid email or password. Please check your credentials.';
+      default:
+        return 'Login failed. Please check your email and password.';
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+
     try {
       await login(email, password);
-      navigate('/admin');
+      // If login succeeds, navigate (toast is shown in AuthContext)
+      setTimeout(() => {
+        navigate('/admin');
+      }, 500);
     } catch (error) {
       console.error('Login error:', error);
+      const errorMessage = getErrorMessage(error.code);
+      setError(errorMessage);
+      // Toast is already shown in AuthContext, but we also show inline error
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -28,11 +61,19 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setError('');
+
     try {
       await loginWithGoogle();
-      navigate('/admin');
+      // If login succeeds, navigate (toast is shown in AuthContext)
+      setTimeout(() => {
+        navigate('/admin');
+      }, 500);
     } catch (error) {
       console.error('Google login error:', error);
+      const errorMessage = error.message || 'Google login failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -42,32 +83,59 @@ const Login = () => {
     <>
       <SEO title="Admin Login - Portfolio" />
       
-      <div className="min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#0a0a0f]">
+        {/* Code Pattern Background */}
+        <div className="absolute inset-0 opacity-[0.03] font-mono text-xs">
+          <div className="absolute top-20 left-10 text-blue-500/10">function login() {'{'}</div>
+          <div className="absolute top-32 left-14 text-blue-500/10">return &lt;Auth /&gt;</div>
+          <div className="absolute top-44 left-10 text-blue-500/10">{'}'}</div>
+        </div>
+
+        {/* Subtle Grid */}
+        <div className="absolute inset-0 opacity-[0.05]">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-md w-full"
+          className="max-w-md w-full relative z-10"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
+          <div className="bg-gray-900/50 border border-gray-800 rounded-xl shadow-2xl p-8 backdrop-blur-sm">
             {/* Header */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Admin Login
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Sign in to access the dashboard
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Code className="w-8 h-8 text-blue-400" />
+                <h1 className="text-3xl font-bold text-white font-mono">
+                  <span className="text-blue-400">admin</span>.<span className="text-purple-400">login</span>()
+                </h1>
+              </div>
+              <p className="text-gray-400 font-mono text-sm">
+                <span className="text-blue-400">//</span> Sign in to access the dashboard
               </p>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-3"
+              >
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-400 text-sm">{error}</p>
+              </motion.div>
+            )}
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2 font-mono"
                 >
-                  Email Address
+                  <span className="text-blue-400">const</span> email
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -75,10 +143,13 @@ const Login = () => {
                     type="email"
                     id="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError(''); // Clear error when user types
+                    }}
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-colors"
-                    placeholder="admin@example.com"
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-700 bg-gray-800/50 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
+                    placeholder='""'
                   />
                 </div>
               </div>
@@ -86,9 +157,9 @@ const Login = () => {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2 font-mono"
                 >
-                  Password
+                  <span className="text-blue-400">const</span> password
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -96,10 +167,13 @@ const Login = () => {
                     type="password"
                     id="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError(''); // Clear error when user types
+                    }}
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-colors"
-                    placeholder="••••••••"
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-700 bg-gray-800/50 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
+                    placeholder='""'
                   />
                 </div>
               </div>
@@ -107,21 +181,21 @@ const Login = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white font-mono"
                 icon={loading ? Loader : null}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? 'Signing in...' : 'login()'}
               </Button>
             </form>
 
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                <div className="w-full border-t border-gray-700"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  Or continue with
+                <span className="px-2 bg-gray-900/50 text-gray-500 font-mono">
+                  <span className="text-blue-400">//</span> Or continue with
                 </span>
               </div>
             </div>
@@ -131,7 +205,7 @@ const Login = () => {
               onClick={handleGoogleLogin}
               disabled={loading}
               variant="outline"
-              className="w-full"
+              className="w-full border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white font-mono"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -151,8 +225,17 @@ const Login = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Sign in with Google
+              loginWithGoogle()
             </Button>
+
+            {/* Info Message */}
+            <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-xs text-gray-400 leading-relaxed font-mono">
+                <span className="text-blue-400">//</span> Note: You need to create an account in Firebase Console first, or use Google Sign-In.
+                <br />
+                <span className="text-blue-400">//</span> After login, set yourself as admin using the setAdmin script.
+              </p>
+            </div>
           </div>
         </motion.div>
       </div>
