@@ -29,16 +29,20 @@ const corsOptions = {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
-    // In development, allow common localhost ports
+    // Production and development allowed origins
     const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:5173',
+      // Production frontend (Render)
+      'https://frontend-portfolio-0aec.onrender.com',
+      // Environment variable for frontend URL
+      process.env.FRONTEND_URL,
+      // Development localhost ports
       'http://localhost:5173',
       'http://localhost:5174',
       'http://localhost:3000',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:5174',
       'http://127.0.0.1:3000'
-    ];
+    ].filter(Boolean); // Remove undefined values
     
     // Allow if origin is in allowed list or matches localhost pattern in development
     if (process.env.NODE_ENV === 'development') {
@@ -54,6 +58,7 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   optionsSuccessStatus: 200
 };
