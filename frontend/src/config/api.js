@@ -15,16 +15,18 @@ const getApiUrl = () => {
   
   if (isDevelopment) {
     // Default to localhost for development
-    return 'https://portfolio-rishu.onrender.com';
+    return 'https://portfolio-rishu-1.onrender.com';
   }
   
   // For production, you should set VITE_API_URL in your environment variables
   // For now, return a placeholder that you need to replace
   console.warn('VITE_API_URL not set. Please set your backend URL in environment variables.');
-  return 'https://portfolio-rishu.onrender.com'; // Fallback - update this with your production backend URL
+  return 'https://portfolio-rishu-1.onrender.com'; // Fallback - update this with your production backend URL
 };
 
-const API_URL = "https://portfolio-rishu.onrender.com/api";
+const API_URL = "https://portfolio-rishu-1.onrender.com/api";
+
+// hello
 
 
 console.log('🔗 API URL:', API_URL); // Debug log
