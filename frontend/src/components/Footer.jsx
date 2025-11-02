@@ -182,7 +182,7 @@ const Footer = () => {
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                <Heart className="w-4 h-4 text-red-500 fill-current" />
+                
               </motion.div>
               <span>by</span>
               <span className="font-semibold text-blue-400">Rishu Kumar Sinha</span>
