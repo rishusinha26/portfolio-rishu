@@ -6,26 +6,41 @@ export const createMessage = async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
 
-    // Save to database
+    // Save to database first to ensure message is not lost
     const newMessage = await Message.create({
       name,
       email,
       subject: subject || 'Portfolio Contact',
-      message
+      message,
+      status: 'pending' // Track email status
     });
 
-    // Send email notification to admin
+    // Send emails with Promise.race to implement timeout
+    const timeout = (ms) => new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Operation timed out')), ms));
+
+    // Send email notification to admin with 30s timeout
     try {
-      await sendContactEmail(name, email, subject || 'Portfolio Contact', message);
+      await Promise.race([
+        sendContactEmail(name, email, subject || 'Portfolio Contact', message),
+        timeout(30000)
+      ]);
       console.log('✅ Admin notification email sent');
+      newMessage.status = 'completed';
+      await newMessage.save();
     } catch (emailError) {
       console.error('❌ Failed to send admin notification email:', emailError);
+      newMessage.status = 'email_failed';
+      await newMessage.save();
       // Continue even if email fails
     }
 
-    // Send confirmation email to user
+    // Send confirmation email to user with 20s timeout
     try {
-      await sendConfirmationEmail(name, email, subject || 'Portfolio Contact');
+      await Promise.race([
+        sendConfirmationEmail(name, email, subject || 'Portfolio Contact'),
+        timeout(20000)
+      ]);
       console.log('✅ Confirmation email sent to user');
     } catch (confirmationError) {
       console.error('❌ Failed to send confirmation email to user:', confirmationError);
@@ -34,7 +49,7 @@ export const createMessage = async (req, res) => {
 
     res.status(201).json({ 
       success: true, 
-      message: 'Message sent successfully',
+      message: 'Message received successfully. We will contact you soon.',
       data: newMessage 
     });
   } catch (error) {
