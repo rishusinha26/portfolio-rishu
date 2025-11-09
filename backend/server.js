@@ -31,7 +31,9 @@ const corsOptions = {
     
     // Production and development allowed origins
     const allowedOrigins = [
-      // Production frontend (Render)
+      // Production frontend (Render) - NEW URL
+      'https://portfolio-rishu-2.onrender.com',
+      // Old production frontend (for backward compatibility)
       'https://frontend-portfolio-0aec.onrender.com',
       // Environment variable for frontend URL
       process.env.FRONTEND_URL,
