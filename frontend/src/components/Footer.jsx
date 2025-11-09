@@ -182,7 +182,6 @@ const Footer = () => {
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                
               </motion.div>
               <span>by</span>
               <span className="font-semibold text-blue-400">Rishu Kumar Sinha</span>
