@@ -17,6 +17,9 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
+// Trust first proxy in production platforms (Render, Vercel, etc.) so req.ip is resolved correctly.
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB();
 
@@ -89,7 +92,14 @@ const contactLimiter = rateLimit({
     message: 'Too many contact form submissions, please try again later.'
   }
 });
-app.use('/api/contact', contactLimiter);
+
+// Apply contact limiter only to message submissions, not config/status checks.
+app.use('/api/contact', (req, res, next) => {
+  if (req.method === 'POST') {
+    return contactLimiter(req, res, next);
+  }
+  return next();
+});
 
 // API Routes
 app.use('/api/projects', projectRoutes);
