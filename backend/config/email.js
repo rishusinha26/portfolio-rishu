@@ -3,18 +3,22 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const useSmtp = Boolean(process.env.SMTP_HOST);
-const allowNoAuth = String(process.env.SMTP_ALLOW_NO_AUTH || 'false') === 'true';
-const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
-const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+const env = (key, fallback = '') => String(process.env[key] ?? fallback).trim();
+
+const smtpHost = env('SMTP_HOST');
+const useSmtp = Boolean(smtpHost);
+const allowNoAuth = env('SMTP_ALLOW_NO_AUTH', 'false').toLowerCase() === 'true';
+const smtpUser = env('SMTP_USER') || env('EMAIL_USER');
+const smtpPass = env('SMTP_PASS') || env('EMAIL_PASS');
+const adminEmail = env('ADMIN_EMAIL');
 
 // Prefer explicit SMTP configuration if provided; otherwise default to Gmail service
 const transporter = nodemailer.createTransport(
   useSmtp
     ? {
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: String(process.env.SMTP_SECURE || 'false') === 'true',
+        host: smtpHost,
+        port: Number(env('SMTP_PORT', '587')),
+        secure: env('SMTP_SECURE', 'false').toLowerCase() === 'true',
         ...(allowNoAuth ? {} : {
           auth: {
             user: smtpUser,
@@ -29,8 +33,8 @@ const transporter = nodemailer.createTransport(
     : {
         service: 'gmail',
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
+          user: env('EMAIL_USER'),
+          pass: env('EMAIL_PASS'),
         },
         // Add timeout settings for Gmail
         connectionTimeout: 10000, // 10 seconds
@@ -47,9 +51,9 @@ const escapeHtml = (value = '') => String(value)
   .replace(/'/g, '&#39;');
 
 export const isEmailConfigured = () => {
-  const hasGmailConfig = !useSmtp && !!(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+  const hasGmailConfig = !useSmtp && !!(env('EMAIL_USER') && env('EMAIL_PASS'));
   const hasSmtpConfig = !!(
-    process.env.SMTP_HOST &&
+    smtpHost &&
     (allowNoAuth || (smtpUser && smtpPass))
   );
   return hasGmailConfig || hasSmtpConfig;
@@ -60,11 +64,11 @@ export const sendContactEmail = async (name, email, subject, message) => {
     throw new Error('Email is not configured. Set EMAIL_USER/EMAIL_PASS or SMTP_ env vars.');
   }
 
-  const fromAddress = smtpUser || process.env.EMAIL_USER || process.env.ADMIN_EMAIL || 'no-reply@portfolio.local';
+  const fromAddress = smtpUser || env('EMAIL_USER') || adminEmail || 'no-reply@portfolio.local';
 
   const mailOptions = {
     from: fromAddress,
-    to: process.env.ADMIN_EMAIL || fromAddress,
+    to: adminEmail || fromAddress,
     replyTo: email, // so admin can reply directly to the sender
     subject: `Portfolio Contact: ${subject}`,
     html: `
@@ -103,13 +107,13 @@ export const sendConfirmationEmail = async (userName, userEmail, subject, adminN
     throw new Error('Email is not configured. Set EMAIL_USER/EMAIL_PASS or SMTP_ env vars.');
   }
 
-  const fromAddress = smtpUser || process.env.EMAIL_USER || process.env.ADMIN_EMAIL || 'no-reply@portfolio.local';
-  const adminEmail = process.env.ADMIN_EMAIL || fromAddress;
+  const fromAddress = smtpUser || env('EMAIL_USER') || adminEmail || 'no-reply@portfolio.local';
+  const supportEmail = adminEmail || fromAddress;
 
   const mailOptions = {
     from: `"${adminName}" <${fromAddress}>`,
     to: userEmail,
-    replyTo: adminEmail,
+    replyTo: supportEmail,
     subject: `Thank you for contacting ${adminName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -145,7 +149,7 @@ export const sendConfirmationEmail = async (userName, userEmail, subject, adminN
           
           <div style="margin: 20px 0;">
             <p style="color: #667eea; font-size: 14px; margin: 5px 0;">
-              📧 Email: <a href="mailto:${adminEmail}" style="color: #667eea; text-decoration: none;">${adminEmail}</a>
+              📧 Email: <a href="mailto:${supportEmail}" style="color: #667eea; text-decoration: none;">${supportEmail}</a>
             </p>
             <p style="color: #667eea; font-size: 14px; margin: 5px 0;">
               📱 Phone: <a href="tel:+917644031967" style="color: #667eea; text-decoration: none;">+91 7644031967</a>

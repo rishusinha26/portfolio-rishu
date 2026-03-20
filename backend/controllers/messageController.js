@@ -66,12 +66,18 @@ export const createMessage = async (req, res) => {
 
       const rawError = String(emailError?.message || '');
       const needsAppPassword = rawError.includes('5.7.9') || rawError.toLowerCase().includes('application-specific password');
+      const invalidLogin = rawError.includes('Invalid login') || rawError.includes('535-5.7.8') || rawError.includes('534-5.7.9');
+      const timedOut = rawError.toLowerCase().includes('timed out') || rawError.toLowerCase().includes('timeout');
 
       return res.status(500).json({
         success: false,
         message: needsAppPassword
-          ? 'Message saved, but Gmail requires an App Password. Set EMAIL_PASS to a Gmail App Password in backend .env.'
-          : 'Message saved, but email delivery failed. Please verify email settings in backend .env.',
+          ? 'Message saved, but Gmail requires an App Password. Set EMAIL_PASS to a Gmail App Password in Render env and redeploy.'
+          : invalidLogin
+            ? 'Message saved, but Gmail login failed. Re-enter EMAIL_USER/EMAIL_PASS in Render (no spaces), then redeploy backend.'
+            : timedOut
+              ? 'Message saved, but email provider timed out. Please retry in a minute and check Render outbound network status.'
+              : 'Message saved, but email delivery failed. Verify EMAIL_USER/EMAIL_PASS and ADMIN_EMAIL in Render env, then redeploy backend.',
         error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
       });
     }
