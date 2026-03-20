@@ -80,10 +80,16 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Contact form specific rate limit
+const isDev = (process.env.NODE_ENV || 'development') === 'development';
 const contactLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // limit each IP to 5 contact submissions per hour
-  message: 'Too many contact form submissions, please try again later.'
+  windowMs: Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || (isDev ? 15 * 60 * 1000 : 60 * 60 * 1000)),
+  max: Number(process.env.CONTACT_RATE_LIMIT_MAX || (isDev ? 100 : 5)),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many contact form submissions, please try again later.'
+  }
 });
 app.use('/api/contact', contactLimiter);
 

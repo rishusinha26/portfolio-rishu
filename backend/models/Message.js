@@ -20,6 +20,11 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'email_failed'],
+    default: 'pending'
+  },
   read: {
     type: Boolean,
     default: false

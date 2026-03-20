@@ -168,21 +168,20 @@ const About = () => {
         description="Learn more about my skills, experience, and passion for web development."
       />
       
-      <div className="min-h-screen pt-20 pb-16 bg-[#0a0a0f] relative overflow-hidden">
-        {/* Code Pattern Background */}
-        <div className="absolute inset-0 opacity-[0.03] font-mono text-xs">
-          <div className="absolute top-20 left-10 text-blue-500/10">class Developer {'{'}</div>
-          <div className="absolute top-32 left-14 text-blue-500/10">skills: ['React', 'Node']</div>
-          <div className="absolute top-44 left-10 text-blue-500/10">{'}'}</div>
+      <div className="about-tech-bg min-h-screen pt-20 pb-16 relative overflow-hidden">
+        {/* Technical layered background */}
+        <div className="about-bg-grid" />
+        <div className="about-bg-sweep" />
+        <div className="about-bg-circuit" />
+
+        <div className="absolute inset-0 opacity-[0.035] font-mono text-xs pointer-events-none">
+          <div className="absolute top-20 left-10 text-cyan-500/20">interface DeveloperProfile {'{'}</div>
+          <div className="absolute top-32 left-14 text-cyan-500/20">stack: ['React', 'Node', 'FastAPI']</div>
+          <div className="absolute top-44 left-10 text-cyan-500/20">status: 'active'</div>
+          <div className="absolute top-56 left-10 text-cyan-500/20">{'}'}</div>
         </div>
 
-        {/* Subtle Grid */}
-        <div className="absolute inset-0 opacity-[0.05]">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-        </div>
-
-        {/* Subtle Orbs */}
-        <div className="absolute inset-0 z-0 opacity-15">
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
           <motion.div
             animate={{
               scale: [1, 1.3, 1],
@@ -194,7 +193,7 @@ const About = () => {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl"
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl"
           />
           <motion.div
             animate={{
@@ -208,7 +207,7 @@ const About = () => {
               ease: "easeInOut",
               delay: 1,
             }}
-            className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl"
+            className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-sky-500 rounded-full mix-blend-screen filter blur-3xl"
           />
         </div>
 
@@ -243,25 +242,35 @@ const About = () => {
                 transition={{ duration: 0.5 }}
                 className="relative"
               >
-                <div className="relative rounded-xl overflow-hidden border-2 border-blue-500/30 shadow-2xl">
-                  <img
-                    src={photoUrl}
-                    alt="Rishu Kumar Sinha"
-                    className="w-full h-auto object-contain"
-                    style={{ maxHeight: '500px' }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `
-                        <div class="w-full h-96 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center rounded-xl">
-                          <div class="text-white text-6xl font-bold font-mono">RKS</div>
-                        </div>
-                      `;
-                    }}
-                  />
-                  {/* Code comment overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
-                    <p className="text-xs text-blue-400 font-mono">
-                      <span className="text-gray-500">//</span> Full-Stack Developer
+                <div className="profile-orbit-shell mx-auto">
+                  <div className="profile-orbit profile-orbit-a" />
+                  <div className="profile-orbit profile-orbit-b" />
+                  <div className="profile-orbit profile-orbit-c" />
+
+                  <motion.div
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+                    className="profile-photo-shell"
+                  >
+                    <img
+                      src={photoUrl}
+                      alt="Rishu Kumar Sinha"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `
+                          <div class="w-full h-full bg-gradient-to-br from-cyan-600 to-blue-700 flex items-center justify-center rounded-full">
+                            <div class="text-white text-6xl font-bold font-mono">RKS</div>
+                          </div>
+                        `;
+                      }}
+                    />
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-t from-[#020617]/70 via-transparent to-transparent" />
+                  </motion.div>
+
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 hud-box px-4 py-2">
+                    <p className="text-[11px] text-cyan-300 font-mono">
+                      <span className="text-cyan-500">//</span> Full-Stack Developer
                     </p>
                   </div>
                 </div>

@@ -93,6 +93,10 @@ api.interceptors.response.use(
     if (error.response?.status === 500) {
       return Promise.reject(new Error(error.response?.data?.message || 'Server error. Please try again later.'));
     }
+
+    if (error.response?.status === 429) {
+      return Promise.reject(new Error(error.response?.data?.message || 'Too many requests. Please wait a bit and try again.'));
+    }
     
     // Return the error message from the server if available
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';

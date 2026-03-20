@@ -33,6 +33,10 @@ const experienceSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  cgpa: {
+    type: String,
+    default: ''
+  },
   skills: [{
     type: String
   }],

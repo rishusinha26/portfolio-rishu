@@ -16,7 +16,7 @@ const sampleProjects = [
   {
     title: 'FinFlow - AI Powered Personal Finance Companion',
     description: 'Built a full-stack personal finance web application to simplify money management by helping users track expenses, manage investments, and monitor debts in one unified platform. Integrated real-time synchronization, secure authentication, AI-driven insights, interactive dashboards, and a chatbot assistant for personalized financial guidance and improved user engagement.',
-    techStack: ['React 18', 'TypeScript', 'TailwindCSS', 'Recharts', 'Node.js', 'Express.js', 'Firebase', 'GEMINI API'],
+    techStack: ['Node.js', 'NumPy', 'Pandas', 'Matplotlib', 'LRM Model', 'Firebase'],
     githubUrl: 'https://github.com/rishusinha26/fin-flow1',
     liveUrl: '',
     imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800',
@@ -26,7 +26,7 @@ const sampleProjects = [
   {
     title: 'CareerMitra – AI-Powered Educational Guidance Platform',
     description: 'Full-stack educational guidance platform addressing the lack of personalized mentorship, limited college awareness, and missed deadlines by providing a centralized hub for career discovery, college search, and application tracking. Features AI-powered aptitude quizzes, personalized career recommendations, searchable college directory, deadline tracker, multilingual support, dark/light mode, voice assistant, and secure authentication.',
-    techStack: ['React 18', 'Vite', 'TailwindCSS', 'Node.js', 'Express.js', 'MongoDB', 'Firebase', 'Axios', 'React Context API'],
+    techStack: ['Node.js', 'MongoDB', 'Firebase'],
     githubUrl: 'https://github.com/rishusinha26/SIH-HACK',
     liveUrl: '',
     imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800',
@@ -103,15 +103,28 @@ const sampleExperiences = [
   },
   {
     type: 'education',
-    title: 'Bachelor of Engineering in Computer Science',
+    title: 'Bachelor of Engineering in Information Science and Engineering',
     organization: 'Siddagange Institute of Technology',
     location: 'Tumakuru, Karnataka',
-    startDate: new Date('2021-09-01'),
-    endDate: new Date('2025-06-01'),
+    startDate: new Date('2023-09-01'),
+    endDate: new Date('2027-06-01'),
     current: false,
-    description: 'Pursuing B.E. in Computer Science and Engineering with focus on full-stack development, data structures, algorithms, and software engineering principles.',
-    skills: ['Data Structures', 'Algorithms', 'Software Engineering', 'Database Management', 'Web Development'],
+    cgpa: '9.1',
+    description: 'Pursuing B.E. in Information Science and Engineering with current CGPA 9.1, focused on full-stack development, data structures, algorithms, and software engineering principles.',
+    skills: ['Data Structures', 'Algorithms', 'Software Engineering', 'Database Management', 'Web Development', 'SQL', 'NumPy', 'Pandas', 'Operating Systems', 'OOPS', 'Computer Networks'],
     order: 3
+  },
+  {
+    type: 'work',
+    title: 'Aurora Club - Theatrical Club of SIT',
+    organization: 'Siddagange Institute of Technology',
+    location: 'Tumakuru, Karnataka',
+    startDate: new Date('2024-01-01'),
+    endDate: null,
+    current: true,
+    description: 'Core member leading activities, mentoring juniors, and coordinating productions and events.',
+    skills: ['Leadership', 'Event Coordination', 'Mentoring', 'Team Collaboration', 'Communication'],
+    order: 4
   },
   {
     type: 'hackathon',
@@ -124,7 +137,7 @@ const sampleExperiences = [
     description: 'Secured Top 15 position among 70 teams in the Smart India Hackathon college round. Contributed to coding, problem-solving, and project development, demonstrating programming, analytical, and teamwork skills.',
     skills: ['JavaScript', 'React', 'Node.js', 'MongoDB', 'Git', 'Problem Solving'],
     certificateUrl: 'https://i.ibb.co/FbL9v3mJ/SIH.jpg',
-    order: 4
+    order: 5
   },
   {
     type: 'hackathon',
@@ -137,7 +150,7 @@ const sampleExperiences = [
     description: 'Participated in CSE HACK LITRATE hackathon. Demonstrated technical skills, problem-solving abilities, and teamwork.',
     skills: ['Problem Solving', 'Teamwork', 'Technical Skills'],
     certificateUrl: 'https://i.ibb.co/27Jm4Gf8/cse-hack-literate.jpg',
-    order: 5
+    order: 6
   }
 ];
 
@@ -146,7 +159,7 @@ const seedDatabase = async () => {
   try {
     // Get MONGO_URI from environment
     let mongoUri = process.env.MONGO_URI;
-    
+
     if (!mongoUri) {
       console.error('❌ Error: MONGO_URI is not defined in environment variables');
       console.error('\n💡 Please ensure you have a .env file in the backend directory');
@@ -166,8 +179,8 @@ const seedDatabase = async () => {
     }
 
     // Remove quotes if present
-    if ((mongoUri.startsWith('"') && mongoUri.endsWith('"')) || 
-        (mongoUri.startsWith("'") && mongoUri.endsWith("'"))) {
+    if ((mongoUri.startsWith('"') && mongoUri.endsWith('"')) ||
+      (mongoUri.startsWith("'") && mongoUri.endsWith("'"))) {
       mongoUri = mongoUri.slice(1, -1).trim();
     }
 
@@ -189,12 +202,12 @@ const seedDatabase = async () => {
     console.log('🔌 Connecting to MongoDB Atlas...');
     const maskedUri = mongoUri.replace(/:[^:@]+@/, ':****@');
     console.log(`   URI: ${maskedUri.substring(0, 70)}...`);
-    
+
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     });
-    
+
     console.log('✅ Connected to MongoDB Atlas');
     console.log(`📊 Database: ${mongoose.connection.name}`);
     console.log(`🌐 Host: ${mongoose.connection.host}`);
@@ -226,7 +239,7 @@ const seedDatabase = async () => {
   } catch (error) {
     console.error('\n❌ Error seeding database:', error.message);
     console.error('\n💡 Troubleshooting:');
-    
+
     if (error.name === 'MongoParseError') {
       console.error('   MongoDB Parse Error - Invalid connection string format');
       console.error('   Check your backend/.env file');
@@ -241,7 +254,7 @@ const seedDatabase = async () => {
       console.error('   Error type:', error.name);
       console.error('   Full error:', error);
     }
-    
+
     console.error('\n📝 Fix your backend/.env file:');
     console.error('   1. Open: backend/.env');
     console.error('   2. Ensure it contains (replace with your actual values):');
@@ -249,7 +262,7 @@ const seedDatabase = async () => {
     console.error('   3. No quotes, no spaces around =');
     console.error('   4. Password URL-encoded (@ = %40)');
     console.error('   5. Save and try again');
-    
+
     process.exit(1);
   } finally {
     if (mongoose.connection.readyState === 1) {

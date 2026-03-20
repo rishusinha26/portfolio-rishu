@@ -10,7 +10,7 @@ export const resumeData = {
     {
       institution: "Siddagange Institute Of Technology",
       degree: "Bachelor of Engineering in Information Science And Engineering",
-      cgpa: "9.15",
+      cgpa: "9.1",
       location: "Tumakuru, Karnataka",
       duration: "SEPT 2023 - PRESENT"
     },
@@ -31,10 +31,10 @@ export const resumeData = {
   ],
   
   technicalSkills: {
-    languages: "C, C++, JavaScript, Python, OS, OOPS",
-    databases: "MongoDB, MySQL, Firebase/Render",
+    languages: "C, C++, JavaScript, Python",
+    databases: "MongoDB, MySQL, SQL, Firebase/Render",
     frameworks: "React, Next.js, Node.js, Express, Tailwind CSS",
-    tools: "Git, GitHub, HTML, CSS"
+    tools: "Git, GitHub, HTML, CSS, NumPy, Pandas, Operating Systems, OOPS, Computer Networks"
   },
   
   projects: [

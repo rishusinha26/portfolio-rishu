@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Moon, Sun, Menu, X, ArrowUpRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -40,10 +38,12 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo - Script Style */}
+          {/* Logo - Terminal Style */}
           <Link to="/" className="flex items-center space-x-2 group">
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:via-purple-300 group-hover:to-pink-300 transition-all">
-              Rishu Kumar Sinha
+            <span className="font-mono text-xl font-bold glow-cyan group-hover:animate-glow-pulse transition-all">
+              <span className="text-cyan-400">[</span>
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">RKS</span>
+              <span className="text-cyan-400">]</span>
             </span>
           </Link>
 
@@ -72,22 +72,6 @@ const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {user && (
-              <>
-                <Link
-                  to="/admin"
-                  className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <button
-                  onClick={logout}
-                  className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                >
-                  Logout
-                </button>
-              </>
-            )}
             <Link
               to="/contact"
               className="px-4 py-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all flex items-center gap-2 hover:scale-105"
@@ -160,26 +144,6 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              {user && (
-                <>
-                  <Link
-                    to="/admin"
-                    onClick={() => setIsOpen(false)}
-                    className="block px-4 py-2 rounded-lg font-medium text-gray-400 hover:bg-gray-800 hover:text-white"
-                  >
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 rounded-lg font-medium text-gray-400 hover:bg-gray-800 hover:text-white"
-                  >
-                    Logout
-                  </button>
-                </>
-              )}
               <Link
                 to="/contact"
                 onClick={() => setIsOpen(false)}

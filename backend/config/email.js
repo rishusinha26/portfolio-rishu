@@ -3,17 +3,24 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const useSmtp = Boolean(process.env.SMTP_HOST);
+const allowNoAuth = String(process.env.SMTP_ALLOW_NO_AUTH || 'false') === 'true';
+const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
 // Prefer explicit SMTP configuration if provided; otherwise default to Gmail service
 const transporter = nodemailer.createTransport(
-  process.env.SMTP_HOST
+  useSmtp
     ? {
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT || 587),
         secure: String(process.env.SMTP_SECURE || 'false') === 'true',
-        auth: {
-          user: process.env.SMTP_USER || process.env.EMAIL_USER,
-          pass: process.env.SMTP_PASS || process.env.EMAIL_PASS,
-        },
+        ...(allowNoAuth ? {} : {
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+        }),
         // Add timeout settings
         connectionTimeout: 10000, // 10 seconds
         greetingTimeout: 5000,    // 5 seconds
@@ -32,12 +39,28 @@ const transporter = nodemailer.createTransport(
       }
 );
 
+const escapeHtml = (value = '') => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+export const isEmailConfigured = () => {
+  const hasGmailConfig = !useSmtp && !!(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+  const hasSmtpConfig = !!(
+    process.env.SMTP_HOST &&
+    (allowNoAuth || (smtpUser && smtpPass))
+  );
+  return hasGmailConfig || hasSmtpConfig;
+};
+
 export const sendContactEmail = async (name, email, subject, message) => {
-  if (!process.env.EMAIL_USER && !process.env.SMTP_USER) {
+  if (!isEmailConfigured()) {
     throw new Error('Email is not configured. Set EMAIL_USER/EMAIL_PASS or SMTP_ env vars.');
   }
 
-  const fromAddress = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const fromAddress = smtpUser || process.env.EMAIL_USER || process.env.ADMIN_EMAIL || 'no-reply@portfolio.local';
 
   const mailOptions = {
     from: fromAddress,
@@ -50,13 +73,13 @@ export const sendContactEmail = async (name, email, subject, message) => {
           New Contact Form Submission
         </h2>
         <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 10px 0;"><strong>Name:</strong> ${name}</p>
-          <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
-          <p style="margin: 10px 0;"><strong>Subject:</strong> ${subject}</p>
+          <p style="margin: 10px 0;"><strong>Name:</strong> ${escapeHtml(name)}</p>
+          <p style="margin: 10px 0;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+          <p style="margin: 10px 0;"><strong>Subject:</strong> ${escapeHtml(subject)}</p>
         </div>
         <div style="margin: 20px 0;">
           <h3 style="color: #333;">Message:</h3>
-          <p style="line-height: 1.6; color: #555; white-space: pre-wrap;">${message}</p>
+          <p style="line-height: 1.6; color: #555; white-space: pre-wrap;">${escapeHtml(message)}</p>
         </div>
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #888; font-size: 12px;">
           <p>This email was sent from your portfolio contact form.</p>
@@ -76,11 +99,11 @@ export const sendContactEmail = async (name, email, subject, message) => {
 
 // Send confirmation email to user who submitted the contact form
 export const sendConfirmationEmail = async (userName, userEmail, subject, adminName = 'Rishu Kumar Sinha') => {
-  if (!process.env.EMAIL_USER && !process.env.SMTP_USER) {
+  if (!isEmailConfigured()) {
     throw new Error('Email is not configured. Set EMAIL_USER/EMAIL_PASS or SMTP_ env vars.');
   }
 
-  const fromAddress = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const fromAddress = smtpUser || process.env.EMAIL_USER || process.env.ADMIN_EMAIL || 'no-reply@portfolio.local';
   const adminEmail = process.env.ADMIN_EMAIL || fromAddress;
 
   const mailOptions = {
@@ -100,7 +123,7 @@ export const sendConfirmationEmail = async (userName, userEmail, subject, adminN
           </p>
           
           <p style="color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
-            Thank you for reaching out to me through my portfolio contact form. I've successfully received your message regarding "<strong>${subject}</strong>".
+            Thank you for reaching out to me through my portfolio contact form. I've successfully received your message regarding "<strong>${escapeHtml(subject)}</strong>".
           </p>
           
           <p style="color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
