@@ -29,14 +29,9 @@ const corsOptions = {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
-    // Production and development allowed origins
+    // Allowed origins
     const allowedOrigins = [
-      // Production frontend (Render) - CURRENT URL
-      'https://portfolio-rishu-2-frontend.onrender.com',
-      // Old production frontends (for backward compatibility)
-      'https://portfolio-rishu-2.onrender.com',
-      'https://frontend-portfolio-0aec.onrender.com',
-      // Environment variable for frontend URL
+      // Primary frontend URL from environment
       process.env.FRONTEND_URL,
       // Development localhost ports
       'http://localhost:5173',

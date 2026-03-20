@@ -20,8 +20,8 @@ const getApiUrl = () => {
   
   // For production, you should set VITE_API_URL in your environment variables
   // For now, return a placeholder that you need to replace
-  console.warn('VITE_API_URL not set. Please set your backend URL in environment variables.');
-  return 'https://portfolio-rishu-2-backk.onrender.com/api'; // Fallback - update this with your production backend URL
+  console.warn('VITE_API_URL not set. Falling back to local backend URL.');
+  return 'http://localhost:5000/api';
 };
 
 const API_URL = getApiUrl();
