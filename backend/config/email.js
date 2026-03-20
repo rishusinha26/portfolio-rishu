@@ -6,19 +6,20 @@ dotenv.config();
 const env = (key, fallback = '') => String(process.env[key] ?? fallback).trim();
 
 const smtpHost = env('SMTP_HOST');
+const smtpPort = Number(env('SMTP_PORT', '587'));
+const smtpSecure = env('SMTP_SECURE', 'false').toLowerCase() === 'true';
 const useSmtp = Boolean(smtpHost);
 const allowNoAuth = env('SMTP_ALLOW_NO_AUTH', 'false').toLowerCase() === 'true';
 const smtpUser = env('SMTP_USER') || env('EMAIL_USER');
 const smtpPass = env('SMTP_PASS') || env('EMAIL_PASS');
 const adminEmail = env('ADMIN_EMAIL');
 
-// Prefer explicit SMTP configuration if provided; otherwise default to Gmail service
-const transporter = nodemailer.createTransport(
+const createTransporter = (portOverride) => nodemailer.createTransport(
   useSmtp
     ? {
         host: smtpHost,
-        port: Number(env('SMTP_PORT', '587')),
-        secure: env('SMTP_SECURE', 'false').toLowerCase() === 'true',
+        port: Number(portOverride || smtpPort),
+        secure: smtpSecure,
         ...(allowNoAuth ? {} : {
           auth: {
             user: smtpUser,
@@ -41,6 +42,15 @@ const transporter = nodemailer.createTransport(
         socketTimeout: 60000,
       }
 );
+
+// Prefer explicit SMTP configuration if provided; otherwise default to Gmail service
+const transporter = createTransporter();
+
+const isTimeoutError = (error) => {
+  const code = String(error?.code || '').toUpperCase();
+  const msg = String(error?.message || '').toLowerCase();
+  return code === 'ETIMEDOUT' || msg.includes('timed out') || msg.includes('timeout');
+};
 
 const escapeHtml = (value = '') => String(value)
   .replace(/&/g, '&amp;')
@@ -95,6 +105,22 @@ export const sendContactEmail = async (name, email, subject, message) => {
     await transporter.sendMail(mailOptions);
     return { success: true };
   } catch (error) {
+    // Render can occasionally have blocked/slow outbound 587. Retry once on 2525 for Brevo.
+    if (
+      useSmtp &&
+      smtpHost.includes('brevo.com') &&
+      smtpPort === 587 &&
+      isTimeoutError(error)
+    ) {
+      try {
+        const fallbackTransporter = createTransporter(2525);
+        await fallbackTransporter.sendMail(mailOptions);
+        return { success: true, fallbackPort: 2525 };
+      } catch (fallbackError) {
+        console.error('Brevo fallback SMTP(2525) error:', fallbackError);
+        throw fallbackError;
+      }
+    }
     console.error('Email error:', error);
     throw error;
   }
