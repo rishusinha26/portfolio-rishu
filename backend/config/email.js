@@ -25,10 +25,10 @@ const transporter = nodemailer.createTransport(
             pass: smtpPass,
           },
         }),
-        // Add timeout settings
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 5000,    // 5 seconds
-        socketTimeout: 20000,     // 20 seconds
+        // Use relaxed timeout values for cloud deployments where SMTP handshakes can be slow.
+        connectionTimeout: 30000,
+        greetingTimeout: 20000,
+        socketTimeout: 60000,
       }
     : {
         service: 'gmail',
@@ -36,10 +36,9 @@ const transporter = nodemailer.createTransport(
           user: env('EMAIL_USER'),
           pass: env('EMAIL_PASS'),
         },
-        // Add timeout settings for Gmail
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 5000,    // 5 seconds
-        socketTimeout: 20000,     // 20 seconds
+        connectionTimeout: 30000,
+        greetingTimeout: 20000,
+        socketTimeout: 60000,
       }
 );
 
