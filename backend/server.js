@@ -28,6 +28,9 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
+
+    // Allow Vercel production + preview domains for this frontend project.
+    const vercelPortfolioPattern = /^https:\/\/portfolio-rishu(?:-[a-z0-9-]+)?\.vercel\.app$/i;
     
     // Allowed origins
     const allowedOrigins = [
@@ -50,7 +53,7 @@ const corsOptions = {
       }
     }
     
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(origin) || vercelPortfolioPattern.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
