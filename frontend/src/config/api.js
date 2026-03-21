@@ -32,7 +32,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15 second timeout
+  timeout: 45000, // 45 second timeout
 });
 
 // Request interceptor to add auth token
@@ -71,7 +71,12 @@ api.interceptors.response.use(
     });
     
     if (error.code === 'ECONNABORTED') {
-      return Promise.reject(new Error('Request timeout. Please check if the backend server is running.'));
+      const isContactRequest = String(error.config?.url || '').includes('/contact');
+      return Promise.reject(new Error(
+        isContactRequest
+          ? 'Request timed out. Your message may still be received. Please wait a moment before trying again.'
+          : 'Request timeout. Please try again.'
+      ));
     }
     
     if (error.code === 'ERR_NETWORK' || !error.response) {

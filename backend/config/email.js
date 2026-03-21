@@ -13,6 +13,7 @@ const allowNoAuth = env('SMTP_ALLOW_NO_AUTH', 'false').toLowerCase() === 'true';
 const smtpUser = env('SMTP_USER') || env('EMAIL_USER');
 const smtpPass = env('SMTP_PASS') || env('EMAIL_PASS');
 const adminEmail = env('ADMIN_EMAIL');
+const mailFrom = env('MAIL_FROM');
 
 const createTransporter = (portOverride) => nodemailer.createTransport(
   useSmtp
@@ -52,6 +53,11 @@ const isTimeoutError = (error) => {
   return code === 'ETIMEDOUT' || msg.includes('timed out') || msg.includes('timeout');
 };
 
+const sanitizeHeader = (value = '') => String(value)
+  .replace(/[\r\n]+/g, ' ')
+  .replace(/"/g, "'")
+  .trim();
+
 const escapeHtml = (value = '') => String(value)
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -73,10 +79,11 @@ export const sendContactEmail = async (name, email, subject, message) => {
     throw new Error('Email is not configured. Set EMAIL_USER/EMAIL_PASS or SMTP_ env vars.');
   }
 
-  const fromAddress = smtpUser || env('EMAIL_USER') || adminEmail || 'no-reply@portfolio.local';
+  const fromAddress = mailFrom || adminEmail || env('EMAIL_USER') || smtpUser || 'no-reply@portfolio.local';
+  const fromDisplayName = sanitizeHeader(`${name} via Portfolio`);
 
   const mailOptions = {
-    from: fromAddress,
+    from: `"${fromDisplayName}" <${fromAddress}>`,
     to: adminEmail || fromAddress,
     replyTo: email, // so admin can reply directly to the sender
     subject: `Portfolio Contact: ${subject}`,
@@ -132,11 +139,12 @@ export const sendConfirmationEmail = async (userName, userEmail, subject, adminN
     throw new Error('Email is not configured. Set EMAIL_USER/EMAIL_PASS or SMTP_ env vars.');
   }
 
-  const fromAddress = smtpUser || env('EMAIL_USER') || adminEmail || 'no-reply@portfolio.local';
+  const fromAddress = mailFrom || adminEmail || env('EMAIL_USER') || smtpUser || 'no-reply@portfolio.local';
+  const fromDisplayName = sanitizeHeader(adminName);
   const supportEmail = adminEmail || fromAddress;
 
   const mailOptions = {
-    from: `"${adminName}" <${fromAddress}>`,
+    from: `"${fromDisplayName}" <${fromAddress}>`,
     to: userEmail,
     replyTo: supportEmail,
     subject: `Thank you for contacting ${adminName}`,
