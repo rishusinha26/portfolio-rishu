@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Moon, Sun, Menu, X } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { Menu, X, CircuitBoard, Radar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PortfolioNavbar = ({ sections }) => {
+const PortfolioNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,41 +58,44 @@ const PortfolioNavbar = ({ sections }) => {
     <nav className="fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <div
-          className={`relative rounded-2xl border transition-all duration-300 ${
+          className={`relative overflow-hidden rounded-2xl border transition-all duration-300 ${
             scrolled
-              ? 'border-cyan-400/35 bg-[#040b17]/92 backdrop-blur-xl shadow-[0_12px_34px_rgba(6,182,212,0.14)]'
-              : 'border-cyan-500/20 bg-[#030914]/78 backdrop-blur-md'
+              ? 'border-cyan-300/40 bg-[#020b16]/92 backdrop-blur-xl shadow-[0_12px_34px_rgba(6,182,212,0.18)]'
+              : 'border-cyan-500/25 bg-[#020b16]/82 backdrop-blur-md'
           }`}
         >
-          <div className="absolute left-3 top-3 h-2 w-2 rounded-full bg-lime-400/90 animate-pulse hidden md:block" />
+          <div className="nav-grid-shell" />
+          <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-cyan-300 via-blue-400 to-cyan-500" />
 
-          <div className="grid grid-cols-[1fr_auto] md:grid-cols-[260px_1fr_220px] items-center gap-3 px-3 py-3">
+          <div className="relative grid grid-cols-[1fr_auto] md:grid-cols-[280px_1fr_180px] items-center gap-3 px-3 py-3">
             <Link to="/" className="group relative flex items-center">
-              <div className="w-full rounded-xl border border-cyan-400/30 bg-[#071729]/75 px-3 py-2 transition-all group-hover:border-cyan-300/65 group-hover:shadow-[0_0_16px_rgba(34,211,238,0.25)]">
-                <p className="text-[10px] leading-none text-cyan-400/80 tech-code">SYSTEM ID</p>
-                <h1 className="tech-heading text-[12px] sm:text-sm font-bold text-cyan-100 tracking-[0.14em] whitespace-nowrap overflow-hidden text-ellipsis">
+              <div className="w-full rounded-xl border border-cyan-400/35 bg-[#071729]/75 px-3 py-2 transition-all group-hover:border-cyan-300/75 group-hover:shadow-[0_0_16px_rgba(34,211,238,0.3)]">
+                <p className="text-[10px] leading-none text-cyan-400/80 tech-code flex items-center gap-1.5">
+                  <CircuitBoard className="w-3 h-3" /> NAV NODE
+                </p>
+                <h1 className="tech-heading text-[12px] sm:text-sm font-bold text-cyan-100 tracking-[0.14em] whitespace-nowrap overflow-hidden text-ellipsis mt-1">
                   RISHU KUMAR SINHA
                 </h1>
               </div>
             </Link>
 
             <div className="hidden md:flex items-center justify-center">
-              <div className="flex items-center gap-1.5 rounded-full border border-cyan-500/25 bg-[#081a2f]/70 px-2 py-1.5">
+              <div className="flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-[#071325]/85 px-2 py-2">
                 {navLinks.map((link) => (
                   <button
                     key={link.id}
                     onClick={() => handleNavClick(link.id)}
-                    className={`relative px-4 py-2 rounded-full tech-code text-xs font-medium transition-all ${
+                    className={`nav-link-tech relative px-4 py-2 rounded-lg tech-code text-xs font-medium transition-all ${
                       activeSection === link.id
-                        ? 'text-cyan-100 bg-cyan-500/16 border border-cyan-500/45'
-                        : 'text-gray-400 hover:text-cyan-300 hover:bg-cyan-500/6 border border-transparent'
+                        ? 'text-cyan-100 bg-cyan-500/16 border border-cyan-400/55'
+                        : 'text-gray-300 hover:text-cyan-100 border border-transparent'
                     }`}
                   >
                     {link.name}
                     {activeSection === link.id && (
                       <motion.div
                         layoutId="navbar-indicator"
-                        className="absolute -bottom-1 left-4 right-4 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400"
+                        className="absolute -bottom-1 left-3 right-3 h-0.5 bg-gradient-to-r from-cyan-300 to-blue-400"
                       />
                     )}
                   </button>
@@ -103,26 +104,12 @@ const PortfolioNavbar = ({ sections }) => {
             </div>
 
             <div className="hidden md:flex items-center justify-end gap-2">
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg border border-cyan-500/25 bg-[#0a1d33]/70 hover:bg-[#0d243f] transition-colors text-gray-400 hover:text-cyan-200"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-              <Link to="/contact" className="px-4 py-2 rounded-lg tech-code text-xs font-semibold tech-btn-primary whitespace-nowrap">
-                SEND SIGNAL
+              <Link to="/contact" className="px-4 py-2 rounded-lg tech-code text-xs font-semibold tech-btn-primary whitespace-nowrap flex items-center gap-2">
+                <Radar className="w-4 h-4" /> SEND SIGNAL
               </Link>
             </div>
 
             <div className="md:hidden flex items-center justify-end gap-2 col-start-2">
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg border border-cyan-500/25 bg-[#0a1d33]/70 hover:bg-[#0d243f] transition-colors text-gray-400 hover:text-cyan-200"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 rounded-lg border border-cyan-500/25 bg-[#0a1d33]/70 hover:bg-[#0d243f] transition-colors"

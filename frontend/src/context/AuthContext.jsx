@@ -23,7 +23,19 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const ensureAuthConfigured = () => {
+    if (auth) return true;
+    const message = 'Firebase auth is not configured. Please set valid Firebase environment variables.';
+    toast.error(message);
+    throw new Error(message);
+  };
+
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return () => {};
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -34,6 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      ensureAuthConfigured();
       const result = await signInWithEmailAndPassword(auth, email, password);
       toast.success('Logged in successfully!');
       return result;
@@ -74,6 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithGoogle = async () => {
     try {
+      ensureAuthConfigured();
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       toast.success('Logged in with Google!');
@@ -96,6 +110,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      if (!auth) return;
       await signOut(auth);
       toast.success('Logged out successfully!');
     } catch (error) {

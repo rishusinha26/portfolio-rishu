@@ -12,12 +12,19 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase safely so the UI can still render if env vars are invalid.
+let app = null;
+let auth = null;
+let analytics = null;
 
-// Initialize services
-export const auth = getAuth(app);
-// Storage removed - using external image hosting (Cloudinary, Imgur, etc.)
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+} catch (error) {
+  console.error('Firebase initialization failed:', error?.message || error);
+}
+
+export { auth, analytics };
 
 export default app;

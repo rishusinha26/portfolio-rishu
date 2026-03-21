@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Download, Code, Database, Cloud, Palette, Music, Gamepad2, BookOpen, Award, TrendingUp, ExternalLink, Github, Loader, FolderOpen, Briefcase, GraduationCap, Trophy, Calendar, MapPin, Mail, Phone, Send, MessageSquare, Gauge, Zap, ShieldCheck, Cpu, Workflow, Radar } from 'lucide-react';
 import api from '../config/api';
 import Button from '../components/Button';
@@ -29,6 +29,17 @@ const Portfolio = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [contactServiceConfigured, setContactServiceConfigured] = useState(true);
   const [contactServiceStatusLoaded, setContactServiceStatusLoaded] = useState(false);
+  const [showIntroGateway, setShowIntroGateway] = useState(true);
+  const [bootSequence, setBootSequence] = useState(false);
+  const [photoZoomTransition, setPhotoZoomTransition] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrollVelocity, setScrollVelocity] = useState(0.2);
+  const [timelineDrawProgress, setTimelineDrawProgress] = useState(0);
+  const [focusedField, setFocusedField] = useState('');
+  const [performanceSafe, setPerformanceSafe] = useState(false);
+  const [packetTrails, setPacketTrails] = useState([]);
+  const introTimerRef = useRef(null);
+  const introZoomTimerRef = useRef(null);
   const location = useLocation();
 
   const photoUrl = 'https://i.ibb.co/r20cMQn5/Whats-App-Image-2025-11-01-at-20-36-49-2f885c5a.jpg';
@@ -41,6 +52,7 @@ const Portfolio = () => {
       color: 'text-blue-400',
       bgColor: 'bg-blue-500/10',
       borderColor: 'border-blue-500/30',
+      proficiency: 92,
       items: ['HTML', 'CSS', 'React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Redux'],
     },
     {
@@ -49,6 +61,7 @@ const Portfolio = () => {
       color: 'text-green-400',
       bgColor: 'bg-green-500/10',
       borderColor: 'border-green-500/30',
+      proficiency: 88,
       items: ['Python', 'Node.js', 'Express', 'REST API', 'FastAPI'],
     },
     {
@@ -57,6 +70,7 @@ const Portfolio = () => {
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-500/10',
       borderColor: 'border-emerald-500/30',
+      proficiency: 85,
       items: ['MongoDB', 'SQL'],
     },
     {
@@ -65,6 +79,7 @@ const Portfolio = () => {
       color: 'text-pink-400',
       bgColor: 'bg-pink-500/10',
       borderColor: 'border-pink-500/30',
+      proficiency: 81,
       items: ['NumPy', 'Pandas'],
     },
     {
@@ -73,6 +88,7 @@ const Portfolio = () => {
       color: 'text-cyan-400',
       bgColor: 'bg-cyan-500/10',
       borderColor: 'border-cyan-500/30',
+      proficiency: 86,
       items: ['Firebase', 'Git', 'Vercel'],
     },
     {
@@ -81,6 +97,7 @@ const Portfolio = () => {
       color: 'text-purple-400',
       bgColor: 'bg-purple-500/10',
       borderColor: 'border-purple-500/30',
+      proficiency: 79,
       items: ['Figma', 'UI/UX', 'Responsive Design', 'Accessibility'],
     },
     {
@@ -89,9 +106,12 @@ const Portfolio = () => {
       color: 'text-orange-400',
       bgColor: 'bg-orange-500/10',
       borderColor: 'border-orange-500/30',
+      proficiency: 87,
       items: ['DSA', 'DBMS', 'Operating Systems', 'OOPS', 'Computer Networks'],
     },
   ];
+
+  const ambientParticleSeeds = [4, 11, 18, 26, 33, 41, 52, 61, 69, 76, 84, 93];
 
   const hobbies = ['Playing', 'Music', 'Coding', 'Reading', 'Gaming'];
 
@@ -122,6 +142,14 @@ const Portfolio = () => {
     { id: 'education', label: 'Education', icon: GraduationCap },
     { id: 'certification', label: 'Certifications', icon: Award },
     { id: 'hackathon', label: 'Hackathons', icon: Trophy },
+  ];
+
+  const introSkills = ['MERN Stack', 'React + Node.js', 'MongoDB', 'FastAPI', 'DSA'];
+
+  const introStats = [
+    { label: 'Role', value: 'Full-Stack Developer' },
+    { label: 'Current Focus', value: 'Web + AI Solutions' },
+    { label: 'Education', value: 'B.E. in Information Science' },
   ];
 
   useEffect(() => {
@@ -275,16 +303,311 @@ const Portfolio = () => {
     return () => clearTimeout(timeoutId);
   }, [location.pathname]);
 
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let lastTime = performance.now();
+
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const currentTime = performance.now();
+      const deltaY = Math.abs(currentY - lastY);
+      const deltaTime = Math.max(currentTime - lastTime, 1);
+      const velocity = Math.min(2, (deltaY / deltaTime) * 10);
+
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? (currentY / scrollable) * 100 : 0;
+
+      const timelineEl = experienceRef.current;
+      if (timelineEl) {
+        const rect = timelineEl.getBoundingClientRect();
+        const start = window.innerHeight * 0.9;
+        const end = window.innerHeight * 0.2;
+        const rawProgress = (start - rect.top) / (rect.height + start - end);
+        const clamped = Math.max(0, Math.min(1, rawProgress));
+        setTimelineDrawProgress(clamped);
+      }
+
+      setScrollProgress(progress);
+      setScrollVelocity(velocity);
+
+      lastY = currentY;
+      lastTime = currentTime;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4;
+    const lowCpu = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4;
+    if (reducedMotion || lowMemory || lowCpu) {
+      setPerformanceSafe(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('performance-safe', performanceSafe);
+    return () => document.body.classList.remove('performance-safe');
+  }, [performanceSafe]);
+
+  useEffect(() => {
+    document.body.style.overflow = showIntroGateway ? 'hidden' : '';
+
+    return () => {
+      document.body.style.overflow = '';
+      if (introTimerRef.current) {
+        clearTimeout(introTimerRef.current);
+      }
+      if (introZoomTimerRef.current) {
+        clearTimeout(introZoomTimerRef.current);
+      }
+    };
+  }, [showIntroGateway]);
+
+  const handleEnterPortfolio = () => {
+    if (bootSequence) return;
+    setBootSequence(true);
+    setPhotoZoomTransition(false);
+
+    introZoomTimerRef.current = setTimeout(() => {
+      setPhotoZoomTransition(true);
+    }, 1650);
+
+    introTimerRef.current = setTimeout(() => {
+      setShowIntroGateway(false);
+      setBootSequence(false);
+      setPhotoZoomTransition(false);
+    }, 2850);
+  };
+
+  const handleMagneticMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty('--cursor-x', `${x}px`);
+    e.currentTarget.style.setProperty('--cursor-y', `${y}px`);
+  };
+
+  const handleMagneticLeave = (e) => {
+    e.currentTarget.style.setProperty('--cursor-x', '50%');
+    e.currentTarget.style.setProperty('--cursor-y', '50%');
+  };
+
+  const emitDataPackets = (event, count = 8) => {
+    if (performanceSafe || !event?.currentTarget) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+
+    const packets = Array.from({ length: count }, (_, index) => ({
+      id: `${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
+      x: originX + (Math.random() * 24 - 12),
+      y: originY + (Math.random() * 16 - 8),
+      dx: (window.innerWidth - originX) * (0.6 + Math.random() * 0.3),
+      dy: -originY * (0.55 + Math.random() * 0.25),
+      delay: index * 0.03,
+      size: 2 + (index % 3),
+    }));
+
+    setPacketTrails((prev) => [...prev, ...packets]);
+
+    window.setTimeout(() => {
+      const ids = new Set(packets.map((packet) => packet.id));
+      setPacketTrails((prev) => prev.filter((packet) => !ids.has(packet.id)));
+    }, 1200);
+  };
+
   return (
     <>
       <SEO 
         title="Full-Stack Developer Portfolio - Rishu Kumar Sinha"
         description="Explore my complete portfolio including skills, projects, experience, and get in touch."
       />
+
+      <AnimatePresence>
+        {showIntroGateway && (
+          <motion.section
+            key="intro-gateway"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45 }}
+            className={`intro-tech-screen ${photoZoomTransition ? 'intro-portal-engage' : ''}`}
+          >
+            <div className="intro-grid-overlay" />
+            <div className="intro-ambient-ring intro-ambient-ring-a" />
+            <div className="intro-ambient-ring intro-ambient-ring-b" />
+            <div className="intro-noise-layer" />
+            <div className="intro-floating-code intro-floating-code-a">{'<dev/>'}</div>
+            <div className="intro-floating-code intro-floating-code-b">{'{ api: online }'}</div>
+            <div className="intro-floating-code intro-floating-code-c">{'[ui, ux, data]'} </div>
+            <div className="intro-content-shell">
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={
+                  photoZoomTransition
+                    ? { opacity: 0, y: -20, scale: 3.2, x: '30%', rotate: 1.6, transition: { duration: 0.62, ease: 'easeInOut' } }
+                    : { opacity: 1, y: 0, scale: 1, x: '0%', transition: { duration: 0.55 } }
+                }
+                transition={{ duration: 0.55 }}
+                className="intro-photo-wrap"
+              >
+                <div className="intro-photo-orbit intro-photo-orbit-a" />
+                <div className="intro-photo-orbit intro-photo-orbit-b" />
+                <img src={photoUrl} alt="Rishu Kumar Sinha" className="intro-photo" />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.55 }}
+                className="intro-dossier"
+              >
+                <div className="intro-header-row">
+                  <p className="tech-code text-xs text-cyan-300">SYSTEM PREVIEW :: PERSONAL DOSSIER</p>
+                  <span className="intro-status-dot" />
+                </div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18, duration: 0.45 }}
+                  className={`tech-heading text-3xl sm:text-4xl text-white mt-2 leading-tight intro-glitch-title ${photoZoomTransition ? 'intro-title-glitch-burst' : ''}`}
+                >
+                  RISHU KUMAR SINHA
+                </motion.h1>
+                <p className="text-gray-300 mt-3 max-w-3xl">
+                  Building responsive products with strong frontend UX, scalable backend systems, and practical
+                  engineering decisions.
+                </p>
+
+                <div className="grid sm:grid-cols-3 gap-3 mt-5">
+                  {introStats.map((item) => (
+                    <div key={item.label} className="intro-stat-card">
+                      <p className="tech-code text-[11px] text-cyan-400">{item.label}</p>
+                      <p className="text-sm text-white mt-1">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {introSkills.map((skill) => (
+                    <motion.span
+                      key={skill}
+                      whileHover={{ y: -3 }}
+                      className="tech-chip intro-chip-animated"
+                    >
+                      {skill}
+                    </motion.span>
+                  ))}
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={(e) => {
+                    emitDataPackets(e, 10);
+                    handleEnterPortfolio();
+                  }}
+                  disabled={bootSequence}
+                  className="intro-popup-btn cta-micro-btn"
+                >
+                  <span className="intro-btn-core" />
+                  <span className="relative z-[2]">{bootSequence ? 'Launching Interface...' : 'Enter Portfolio Interface'}</span>
+                </motion.button>
+              </motion.div>
+            </div>
+
+            {bootSequence && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={photoZoomTransition ? { opacity: 0.25 } : { opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="intro-boot-overlay"
+              >
+                <div className="intro-cinematic-grid" />
+                <div className="intro-cinematic-ring intro-cinematic-ring-a" />
+                <div className="intro-cinematic-ring intro-cinematic-ring-b" />
+                <div className="intro-cinematic-flash" />
+                <div className="intro-shutter intro-shutter-1" />
+                <div className="intro-shutter intro-shutter-2" />
+                <div className="intro-shutter intro-shutter-3" />
+                {photoZoomTransition && <div className="intro-glitch-bars" />}
+                <div className="intro-boot-box">
+                  <p className="tech-code text-cyan-300 text-xs mb-3">Decrypting portfolio matrix...</p>
+                  <p className="intro-boot-line">[01] AUTH OK</p>
+                  <p className="intro-boot-line">[02] MODULES READY</p>
+                  <p className="intro-boot-line">[03] RENDERING UI</p>
+                  <div className="intro-loader-track">
+                    <motion.div
+                      className="intro-loader-fill"
+                      initial={{ width: '0%' }}
+                      animate={{ width: '100%' }}
+                      transition={{ duration: 2.35, ease: 'easeInOut' }}
+                    />
+                  </div>
+                  <p className="tech-code text-[11px] text-cyan-200/90 mt-3">Compiling visuals • Streaming projects • Sync complete</p>
+                </div>
+              </motion.div>
+            )}
+
+            {photoZoomTransition && <div className="intro-zoom-vortex" />}
+            {photoZoomTransition && <div className="intro-shockwave" />}
+          </motion.section>
+        )}
+      </AnimatePresence>
       
       <PortfolioNavbar />
 
-      <div className="interface-shell text-white">
+      {!showIntroGateway && (
+        <div className="nav-progress-rail" aria-hidden="true">
+          <div className="nav-progress-fill" style={{ width: `${scrollProgress}%` }} />
+        </div>
+      )}
+
+      {packetTrails.length > 0 && (
+        <div className="packet-trail-layer" aria-hidden="true">
+          {packetTrails.map((packet) => (
+            <span
+              key={packet.id}
+              className="packet-trail"
+              style={{
+                '--packet-x': `${packet.x}px`,
+                '--packet-y': `${packet.y}px`,
+                '--packet-dx': `${packet.dx}px`,
+                '--packet-dy': `${packet.dy}px`,
+                '--packet-delay': `${packet.delay}s`,
+                '--packet-size': `${packet.size}px`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="interface-shell text-white" style={{ '--scroll-velocity': `${Math.max(0.2, scrollVelocity)}` }}>
+        <svg className="circuit-overlay" viewBox="0 0 1200 2800" preserveAspectRatio="none" aria-hidden="true">
+          <path className="circuit-path circuit-path-a" d="M40 90 C 260 40, 500 150, 760 100 C 920 70, 1040 120, 1160 210" />
+          <path className="circuit-path circuit-path-b" d="M90 740 C 290 660, 540 760, 800 700 C 980 660, 1080 760, 1150 910" />
+          <path className="circuit-path circuit-path-c" d="M60 1460 C 280 1520, 520 1400, 760 1480 C 920 1540, 1060 1470, 1140 1650" />
+          <path className="circuit-path circuit-path-d" d="M70 2120 C 260 2060, 500 2180, 760 2120 C 940 2080, 1060 2180, 1140 2360" />
+        </svg>
+        <div className="ambient-particle-field" aria-hidden="true">
+          {ambientParticleSeeds.map((seed, index) => (
+            <span
+              key={seed}
+              className="ambient-particle"
+              style={{
+                left: `${seed}%`,
+                animationDelay: `${(index % 6) * 0.5}s`,
+                animationDuration: `${8 + (index % 5) * 1.4}s`,
+              }}
+            />
+          ))}
+        </div>
         {/* ABOUT SECTION */}
         <section ref={aboutRef} id="about" className="section-blueprint min-h-screen pt-32 pb-20 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.03] font-mono text-xs">
@@ -324,92 +647,82 @@ const Portfolio = () => {
                   viewport={{ once: true }}
                   className="notch-card neo-command-panel p-6 md:p-8 flex flex-col gap-6"
                 >
-                  <div className="flex items-center justify-between border-b border-cyan-500/25 pb-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cyan-500/25 pb-4">
                     <div>
-                      <p className="tech-code text-xs text-cyan-300">COMMAND_CONSOLE</p>
-                      <p className="tech-code text-[10px] text-cyan-500/80 mt-1">SECTOR: PROFILE_CORE</p>
+                      <p className="tech-code text-xs text-cyan-300">PROFILE DOSSIER</p>
+                      <p className="tech-code text-[10px] text-cyan-500/80 mt-1">FULL-STACK ENGINEERING TRACK</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="signal-dot" />
-                      <span className="tech-chip">BUILD: v3.4</span>
+                      <span className="tech-chip">MERN</span>
+                      <span className="tech-chip">FASTAPI</span>
+                      <span className="tech-chip">BUILD v4.0</span>
                     </div>
                   </div>
 
-                  <div className="command-feed space-y-3">
-                    <p className="console-line">&gt; booting profile matrix...</p>
-                    <p className="console-line">&gt; loading specialization: full-stack engineering</p>
-                    <p className="console-line">&gt; loading stack: react | node | mongodb | fastapi</p>
-                    <p className="console-line">&gt; status: ready for complex builds</p>
+                  <div className="grid md:grid-cols-[1.3fr_1fr] gap-4">
+                    <div className="notch-card p-5">
+                      <h3 className="tech-heading text-2xl text-white mb-3">Building for Real Users</h3>
+                      <p className="text-gray-300 leading-relaxed mb-4">
+                        I design and ship complete products from interface to infrastructure with a focus on
+                        clear architecture, speed, and long-term maintainability.
+                      </p>
+                      <div className="space-y-2 text-sm text-gray-200">
+                        <p className="flex items-center gap-2"><Zap className="w-4 h-4 text-cyan-400" /> Product-grade full-stack web applications</p>
+                        <p className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-cyan-400" /> Authentication and secure user flows</p>
+                        <p className="flex items-center gap-2"><Database className="w-4 h-4 text-cyan-400" /> API, database, and data-model engineering</p>
+                        <p className="flex items-center gap-2"><Gauge className="w-4 h-4 text-cyan-400" /> Optimization for performance and scalability</p>
+                      </div>
+                    </div>
+
+                    <div className="command-feed">
+                      <p className="tech-code text-[11px] text-cyan-300 mb-3">QUICK SNAPSHOT</p>
+                      <div className="space-y-3">
+                        <div className="telemetry-card p-3">
+                          <p className="tech-code text-[10px] text-cyan-400 flex items-center gap-2"><Cpu className="w-3.5 h-3.5" /> Experience</p>
+                          <p className="tech-heading text-white text-lg mt-1">3+ Years</p>
+                        </div>
+                        <div className="telemetry-card p-3">
+                          <p className="tech-code text-[10px] text-cyan-400 flex items-center gap-2"><Workflow className="w-3.5 h-3.5" /> Core Stack</p>
+                          <p className="tech-heading text-white text-lg mt-1">MERN + FastAPI</p>
+                        </div>
+                        <div className="telemetry-card p-3">
+                          <p className="tech-code text-[10px] text-cyan-400 flex items-center gap-2"><Radar className="w-3.5 h-3.5" /> Availability</p>
+                          <p className="tech-heading text-white text-lg mt-1">Open to Build</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-3 gap-3">
-                    <div className="telemetry-card p-3">
-                      <p className="tech-code text-[10px] text-cyan-400 mb-2 flex items-center gap-2"><Gauge className="w-3.5 h-3.5" /> API UPTIME</p>
-                      <div className="meter-track"><div className="meter-fill w-[92%]" /></div>
-                      <p className="tech-code text-xs text-cyan-200 mt-2">99.9%</p>
-                    </div>
-                    <div className="telemetry-card p-3">
-                      <p className="tech-code text-[10px] text-cyan-400 mb-2 flex items-center gap-2"><Zap className="w-3.5 h-3.5" /> RENDER EFFICIENCY</p>
-                      <div className="meter-track"><div className="meter-fill w-[88%]" /></div>
-                      <p className="tech-code text-xs text-cyan-200 mt-2">A+</p>
-                    </div>
-                    <div className="telemetry-card p-3">
-                      <p className="tech-code text-[10px] text-cyan-400 mb-2 flex items-center gap-2"><ShieldCheck className="w-3.5 h-3.5" /> PIPELINE STATUS</p>
-                      <div className="meter-track"><div className="meter-fill w-[96%]" /></div>
-                      <p className="tech-code text-xs text-cyan-200 mt-2">STABLE</p>
-                    </div>
-                  </div>
-
-                  <div className="notch-card p-5">
-                    <p className="text-gray-300 leading-relaxed mb-3">
-                      I build scalable, production-focused web applications with a strong emphasis on performance,
-                      maintainability, and clean architecture.
-                    </p>
-                    <p className="text-gray-300 leading-relaxed">
-                      I transform raw product ideas into reliable systems by combining modern frontend engineering
-                      with resilient backend APIs and database architecture.
-                    </p>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div className="notch-card p-4">
-                      <p className="tech-code text-[11px] text-cyan-400 flex items-center gap-1.5"><Cpu className="w-3.5 h-3.5" />RUNTIME</p>
-                      <p className="tech-heading text-white text-lg">3+ YEARS</p>
-                    </div>
-                    <div className="notch-card p-4">
-                      <p className="tech-code text-[11px] text-cyan-400 flex items-center gap-1.5"><Workflow className="w-3.5 h-3.5" />SYSTEM</p>
-                      <p className="tech-heading text-white text-lg">MERN</p>
-                    </div>
-                    <div className="notch-card p-4">
-                      <p className="tech-code text-[11px] text-cyan-400 flex items-center gap-1.5"><Radar className="w-3.5 h-3.5" />SIGNAL</p>
-                      <p className="tech-heading text-white text-lg">ACTIVE</p>
-                    </div>
-                    <a
-                      href="https://leetcode.com/u/Rishu__26/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="notch-card p-4 block hover:border-amber-400/60 transition-colors"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
+                  <a
+                    href="https://leetcode.com/u/Rishu__26/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="notch-card p-4 block hover:border-amber-400/60 transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="tech-code text-[11px] text-cyan-400 mb-1 flex items-center gap-2">
                         <img
                           src="https://cdn.simpleicons.org/leetcode/F89F1B"
                           alt="LeetCode"
                           className="w-4 h-4"
                         />
-                        <p className="tech-code text-[11px] text-cyan-400">LEETCODE</p>
-                      </div>
-                      <p className="tech-heading text-white text-lg">450+ SOLVED</p>
-                    </a>
-                  </div>
+                        LEETCODE TRACKER
+                      </p>
+                      <p className="tech-heading text-white text-xl">450+ SOLVED</p>
+                    </div>
+                  </a>
 
                   <motion.button
                     whileHover={{ scale: 1.03, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={handleDownloadResume}
-                    className="w-full px-8 py-4 tech-btn-primary rounded-lg font-semibold tech-code shadow-lg shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 uppercase text-sm tracking-wider"
+                    onClick={(e) => {
+                      emitDataPackets(e, 8);
+                      handleDownloadResume();
+                    }}
+                    className="w-full px-8 py-4 tech-btn-primary rounded-lg font-semibold tech-code shadow-lg shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 uppercase text-sm tracking-wider cta-micro-btn"
                   >
                     <Download className="w-5 h-5" />
-                    Execute Resume Download
+                    Download Resume
                   </motion.button>
                 </motion.div>
 
@@ -470,7 +783,7 @@ const Portfolio = () => {
             >
               <h3 className="tech-heading text-3xl font-bold text-center text-white mb-4">
                 <span className="text-cyan-400 font-mono">[</span>
-                <span className="text-white">Skills & Technologies</span>
+                <span className="text-white section-title-typed">Skills & Technologies</span>
                 <span className="text-cyan-400 font-mono">]</span>
               </h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -482,7 +795,9 @@ const Portfolio = () => {
                     whileHover={{ y: -6, scale: 1.02 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
-                    className={`notch-card border ${skill.borderColor} rounded-xl p-6 hover:border-opacity-50 transition-all tech-card hover-scale-tech`}
+                    onMouseMove={handleMagneticMove}
+                    onMouseLeave={handleMagneticLeave}
+                    className={`notch-card border ${skill.borderColor} rounded-xl p-6 hover:border-opacity-50 transition-all tech-card hover-scale-tech magnetic-surface`}
                   >
                     <div className={`w-12 h-12 ${skill.bgColor} rounded-lg flex items-center justify-center mb-4`}>
                       <skill.icon className={`w-6 h-6 ${skill.color}`} />
@@ -496,6 +811,21 @@ const Portfolio = () => {
                           {item}
                         </span>
                       ))}
+                    </div>
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-[11px] tech-code text-cyan-300 mb-1">
+                        <span>Proficiency</span>
+                        <span>{skill.proficiency}%</span>
+                      </div>
+                      <div className="skill-meter-track">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${skill.proficiency}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.9, delay: 0.12 * index }}
+                          className="skill-meter-fill"
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -562,7 +892,7 @@ const Portfolio = () => {
             >
               <h2 className="tech-heading text-4xl sm:text-5xl font-bold text-white mb-4">
                 <span className="text-cyan-400 font-mono">&lt;</span>
-                <span className="text-white">Projects</span>
+                <span className="text-white section-title-typed">Projects</span>
                 <span className="text-cyan-400 font-mono"> /&gt;</span>
               </h2>
               <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 mx-auto rounded-full"></div>
@@ -582,7 +912,9 @@ const Portfolio = () => {
                     whileHover={{ y: -10, scale: 1.01 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
-                    className="group notch-card border border-cyan-500/30 rounded-xl overflow-hidden hover:border-cyan-300 transition-all tech-card hover-lift"
+                    onMouseMove={handleMagneticMove}
+                    onMouseLeave={handleMagneticLeave}
+                    className="group notch-card border border-cyan-500/30 rounded-xl overflow-hidden hover:border-cyan-300 transition-all tech-card hover-lift magnetic-surface hologram-card"
                   >
                     <div className="px-4 py-2 border-b border-cyan-500/20 bg-black/25 flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -645,7 +977,7 @@ const Portfolio = () => {
             >
               <h2 className="tech-heading text-4xl sm:text-5xl font-bold text-white mb-4">
                 <span className="text-cyan-400 font-mono">&lt;</span>
-                <span className="text-white">Experience</span>
+                <span className="text-white section-title-typed">Experience</span>
                 <span className="text-cyan-400 font-mono"> /&gt;</span>
               </h2>
               <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 mx-auto rounded-full"></div>
@@ -675,7 +1007,7 @@ const Portfolio = () => {
             </div>
 
             {/* Experience List */}
-            <div className="space-y-6">
+            <div className="space-y-6 timeline-wrap" style={{ '--timeline-progress': timelineDrawProgress }}>
               {filteredExperiences.map((exp, index) => (
                 <motion.div
                   key={exp._id}
@@ -683,8 +1015,9 @@ const Portfolio = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  className="notch-card border border-cyan-500/30 rounded-xl p-8 tech-card hover-glow-cyan"
+                  className="notch-card border border-cyan-500/30 rounded-xl p-8 tech-card hover-glow-cyan timeline-card"
                 >
+                  <span className="timeline-node" aria-hidden="true" />
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                     <div>
                       <h3 className="text-2xl font-bold text-white mb-2">{exp.title}</h3>
@@ -736,7 +1069,7 @@ const Portfolio = () => {
             >
               <h2 className="tech-heading text-4xl sm:text-5xl font-bold text-white mb-4">
                 <span className="text-cyan-400 font-mono">&lt;</span>
-                <span className="text-white">Contact</span>
+                <span className="text-white section-title-typed">Contact</span>
                 <span className="text-cyan-400 font-mono"> /&gt;</span>
               </h2>
               <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 mx-auto rounded-full"></div>
@@ -753,7 +1086,9 @@ const Portfolio = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
-                    className="notch-card border border-cyan-500/30 rounded-xl p-6 text-center tech-card hover-lift"
+                    onMouseMove={handleMagneticMove}
+                    onMouseLeave={handleMagneticLeave}
+                    className="notch-card border border-cyan-500/30 rounded-xl p-6 text-center tech-card hover-lift magnetic-surface"
                   >
                     <div className="w-16 h-16 bg-cyan-500/10 rounded-lg flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
                       <Icon className="w-8 h-8 text-cyan-400" />
@@ -786,7 +1121,9 @@ const Portfolio = () => {
                     placeholder="Your Name"
                     value={formData.name}
                     onChange={handleContactChange}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono"
+                    onFocus={() => setFocusedField('name')}
+                    onBlur={() => setFocusedField('')}
+                    className={`w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono input-scanner ${focusedField === 'name' ? 'input-scanner-active' : ''}`}
                     required
                   />
                   <input
@@ -795,7 +1132,9 @@ const Portfolio = () => {
                     placeholder="Your Email"
                     value={formData.email}
                     onChange={handleContactChange}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono"
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField('')}
+                    className={`w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono input-scanner ${focusedField === 'email' ? 'input-scanner-active' : ''}`}
                     required
                   />
                 </div>
@@ -805,9 +1144,11 @@ const Portfolio = () => {
                   placeholder="Subject"
                   value={formData.subject}
                   onChange={handleContactChange}
+                  onFocus={() => setFocusedField('subject')}
+                  onBlur={() => setFocusedField('')}
                   minLength={2}
                   maxLength={150}
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono"
+                  className={`w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono input-scanner ${focusedField === 'subject' ? 'input-scanner-active' : ''}`}
                   required
                 />
                 <textarea
@@ -815,18 +1156,21 @@ const Portfolio = () => {
                   placeholder="Your Message"
                   value={formData.message}
                   onChange={handleContactChange}
+                  onFocus={() => setFocusedField('message')}
+                  onBlur={() => setFocusedField('')}
                   rows="6"
                   minLength={10}
                   maxLength={5000}
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono resize-none"
+                  className={`w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono resize-none input-scanner ${focusedField === 'message' ? 'input-scanner-active' : ''}`}
                   required
                 ></textarea>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={(e) => emitDataPackets(e, 9)}
                   disabled={submitLoading || !contactServiceConfigured}
                   type="submit"
-                  className="w-full px-8 py-4 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold font-mono shadow-lg shadow-cyan-500/50 hover:shadow-xl hover:shadow-cyan-500/70 transition-all flex items-center justify-center gap-2 border border-cyan-400/60 hover:border-cyan-300 uppercase text-sm tracking-wider group h-14"
+                  className="w-full px-8 py-4 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold font-mono shadow-lg shadow-cyan-500/50 hover:shadow-xl hover:shadow-cyan-500/70 transition-all flex items-center justify-center gap-2 border border-cyan-400/60 hover:border-cyan-300 uppercase text-sm tracking-wider group h-14 cta-micro-btn"
                 >
                   {submitLoading ? (
                     <Loader className="w-5 h-5 animate-spin" />
@@ -842,6 +1186,16 @@ const Portfolio = () => {
           </div>
         </section>
       </div>
+
+      {!showIntroGateway && (
+        <button
+          type="button"
+          onClick={() => setPerformanceSafe((prev) => !prev)}
+          className="perf-toggle-btn"
+        >
+          FX: {performanceSafe ? 'SAFE' : 'HIGH'}
+        </button>
+      )}
 
       {/* Hidden Resume Component for PDF generation */}
       <div style={{ display: 'none' }}>

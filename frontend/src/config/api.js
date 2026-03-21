@@ -38,7 +38,7 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   async (config) => {
-    const user = auth.currentUser;
+    const user = auth?.currentUser;
     if (user) {
       try {
         const token = await user.getIdToken();
